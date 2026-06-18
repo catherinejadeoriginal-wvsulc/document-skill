@@ -1,118 +1,113 @@
 # Skill: DOCX Document Generation
 
-Generate professional .docx files using the `python-docx` library.
+Generate professional .docx files using the `docx` npm package.
 
 ## Prerequisites
 
-```powershell
-python -m pip install python-docx
+```bash
+npm install docx
 ```
 
 ## Core Pattern
 
-```python
-from docx import Document
-from docx.shared import Inches, Pt, Cm, RGBColor, Emu
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.table import WD_TABLE_ALIGNMENT
-from docx.enum.section import WD_ORIENT
-from docx.oxml.ns import qn
-from docx.oxml import OxmlElement
+```javascript
+const { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, Row, Cell } = require('docx');
 
-doc = Document()
-# ... build document ...
-doc.save("output.docx")
+const doc = new Document();
+// ... build document ...
+
+Packer.toBuffer(doc).then((buffer) => {
+  // Write buffer to file or stream
+});
 ```
 
 ## Common Operations
 
 ### Text & Paragraphs
-```python
-p = doc.add_paragraph("Hello", style="Heading 1")
-run = p.add_run("bold text")
-run.bold = True
-run.font.size = Pt(12)
-run.font.color.rgb = RGBColor(0, 0, 0)
-p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+```javascript
+const p = doc.addParagraph("Hello", {
+  heading: HeadingLevel.HEADING_1
+});
+p.addRun("bold text").bold = true;
+p.addRun(" normal text").fontSize = 12;
+p.addRun(" colored text").color = "000000";
+p.alignment = "center";
 ```
 
 ### Tables
-```python
-table = doc.add_table(rows=3, cols=2, style="Table Grid")
-table.alignment = WD_TABLE_ALIGNMENT.CENTER
-cell = table.cell(0, 0)
-cell.text = "Header"
-# merge cells
-cell_a = table.cell(0, 0)
-cell_b = table.cell(0, 1)
-cell_a.merge(cell_b)
+```javascript
+const table = doc.addTable(3, 2);
+table.setWidth("100%");
+table.alignment = "center";
+table.getCell(0, 0).addParagraph("Header");
+// merge cells
+table.getCell(0, 0).merge(table.getCell(0, 1));
 ```
 
 ### Images
-```python
-doc.add_picture("image.png", width=Inches(5))
+```javascript
+// Note: Image support requires additional processing
+// For base64 images or file paths, use a different approach
 ```
 
 ### Page Setup
-```python
-section = doc.sections[0]
-section.page_width = Cm(21)
-section.page_height = Cm(29.7)
-section.orientation = WD_ORIENT.PORTRAIT
-section.left_margin = Cm(2.5)
-section.right_margin = Cm(2.5)
-section.top_margin = Cm(2.5)
-section.bottom_margin = Cm(2.5)
+```javascript
+const section = doc.sections[0];
+section.setPageSize({
+  width: 11905.6, // 8.5 inches in twips
+  height: 16838.4, // 11 inches in twips
+});
+section.orientation = "portrait";
+section.setMargins({
+  top: 1440, // 1 inch in twips
+  bottom: 1440,
+  left: 1440,
+  right: 1440,
+});
 ```
 
 ### Headers & Footers
-```python
-header = doc.sections[0].header
-hp = header.paragraphs[0]
-hp.text = "Header Text"
+```javascript
+const header = doc.createHeader();
+header.addParagraph("Header Text", {
+  alignment: "center"
+});
 
-footer = doc.sections[0].footer
-fp = footer.paragraphs[0]
-fp.text = "Page "
-# add page number field
-run = fp.add_run()
-fldChar1 = OxmlElement('w:fldChar')
-fldChar1.set(qn('w:fldCharType'), 'begin')
-run._r.append(fldChar1)
-run2 = fp.add_run()
-fldCode = OxmlElement('w:instrText')
-fldCode.set(qn('xml:space'), 'preserve')
-fldCode.text = ' PAGE '
-run2._r.append(fldCode)
-run3 = fp.add_run()
-fldChar2 = OxmlElement('w:fldChar')
-fldChar2.set(qn('w:fldCharType'), 'end')
-run3._r.append(fldChar2)
+const footer = doc.createFooter();
+const footerPara = footer.addParagraph("Page ");
+footerPara.addRun("1").pageNumber();
 ```
 
 ### Styles
-```python
-style = doc.styles['Normal']
-style.font.name = 'Times New Roman'
-style.font.size = Pt(12)
-style.paragraph_format.line_spacing = 1.5
-style.paragraph_format.space_after = Pt(0)
+```javascript
+// Styles are applied directly to elements
+// For custom styles, use the styles API
 ```
 
 ### Page Breaks
-```python
-doc.add_page_break()
+```javascript
+doc.addSectionBreak();
 ```
 
 ### Lists
-```python
-doc.add_paragraph("Item 1", style="List Bullet")
-doc.add_paragraph("Item 2", style="List Number")
+```javascript
+doc.addParagraph("Item 1", {
+  bullet: {
+    level: 0
+  }
+});
+
+doc.addParagraph("Item 2", {
+  numbering: {
+    reference: "1",
+    level: 0
+  }
+});
 ```
 
 ## Workflow
 
 1. Load skill: `/skill docx` to activate this skill
 2. Define document structure (sections, styles, content)
-3. Generate the .docx using python-docx
+3. Generate the .docx using the docx npm package
 4. Always run the script and verify the output
